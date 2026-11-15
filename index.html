@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jadłospis 5 dni · 2000 / 1600 kcal</title>
+<style>
+  :root{
+    --bg:#f1f6f2; --card:#ffffff; --ink:#1d2a24; --muted:#5f7268;
+    --line:#dde8e1; --accent:#2f6b4f; --accent2:#4c8f6b; --soft:#e9f3ec;
+    --gold:#b98b3c; --blue:#3b6ea5; --violet:#7a5aa6; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Arial,sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  h1,h2,h3,h4{margin:0; line-height:1.25;}
+  button{font-family:inherit;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px;}
+
+  /* ---------- HEADER ---------- */
+  header.top{
+    position:sticky; top:0; z-index:40;
+    background:rgba(255,255,255,.92); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .top-row{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 20px 10px;}
+  .brand{display:flex; align-items:center; gap:12px; min-width:0;}
+  .logo{
+    width:44px; height:44px; border-radius:13px; flex:none;
+    background:linear-gradient(135deg,#3f8a63,#2f6b4f);
+    color:#fff; display:grid; place-items:center; font-size:22px;
+    box-shadow:0 4px 12px rgba(47,107,79,.25);
+  }
+  .kicker{font-size:11px; letter-spacing:1.6px; text-transform:uppercase; color:#7d9188; font-weight:600;}
+  h1{font-size:21px; letter-spacing:-.3px;}
+  .controls{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+
+  .seg{display:flex; background:#eef3f0; border:1px solid var(--line); border-radius:11px; padding:3px; gap:2px;}
+  .seg button{
+    border:0; background:transparent; color:var(--muted); font-size:13px; font-weight:600;
+    padding:7px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;
+  }
+  .seg button:hover{color:var(--ink);}
+  .seg button.on{background:#fff; color:var(--accent); box-shadow:0 1px 4px rgba(0,0,0,.09);}
+
+  .btn{
+    border:1px solid var(--line); background:#fff; color:var(--ink);
+    font-size:13px; font-weight:600; padding:8px 14px; border-radius:10px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  }
+  .btn:hover{border-color:#c3d6ca; background:#fafcfb;}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .btn.primary:hover{background:#275a42;}
+  .btn.ghost{background:transparent;}
+
+  nav.tabs{display:flex; gap:4px; padding:0 20px; max-width:1180px; margin:0 auto; overflow-x:auto;}
+  nav.tabs button{
+    border:0; background:transparent; padding:11px 14px 12px; cursor:pointer;
+    font-size:14px; font-weight:600; color:var(--muted);
+    border-bottom:3px solid transparent; white-space:nowrap;
+  }
+  nav.tabs button:hover{color:var(--ink);}
+  nav.tabs button.on{color:var(--accent); border-bottom-color:var(--accent);}
+
+  main{padding:22px 0 60px;}
+  .tab{display:none;}
+  .tab.on{display:block;}
+
+  /* ---------- TOOLBAR ---------- */
+  .toolbar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .chip{
+    border:1px solid var(--line); background:#fff; color:var(--muted);
+    font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px; cursor:pointer;
+  }
+  .chip:hover{border-color:#c3d6ca;}
+  .chip.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .spacer{flex:1;}
+
+  /* ---------- SUMMARY ---------- */
+  .summary{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px;
+  }
+  .sum-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px;
+  }
+  .sum-card h4{font-size:13px; color:var(--muted); font-weight:600; margin-bottom:4px;}
+  .sum-card .big{font-size:22px; font-weight:700; letter-spacing:-.4px;}
+  .sum-card .big span{font-size:12px; color:var(--muted); font-weight:500;}
+  .bar{height:7px; background:#edf2ef; border-radius:99px; overflow:hidden; margin-top:9px;}
+  .bar i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#3f8a63,#2f6b4f);}
+  .bar.protein i{background:linear-gradient(90deg,#5b9bd5,#3b6ea5);}
+  .bar-row{display:flex; justify-content:space-between; font-size:11.5px; color:var(--muted); margin-top:4px;}
+
+  /* ---------- DAY ---------- */
+  .day{margin-bottom:30px; scroll-margin-top:130px;}
+  .day-head{display:flex; align-items:baseline; gap:12px; margin:0 0 12px; flex-wrap:wrap;}
+  .day-num{
+    width:34px;height:34px;border-radius:10px;background:var(--accent);color:#fff;
+    display:grid;place-items:center;font-weight:700;font-size:15px;flex:none;
+  }
+  .day-head h2{font-size:18px;}
+  .day-total{font-size:12.5px; color:var(--muted); font-weight:600;}
+  .meals{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:0; overflow:hidden; display:flex; flex-direction:column;
+  }
+  .card-head{padding:13px 16px 10px; border-bottom:1px solid #eef3f0;}
+  .slot{
+    display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.9px;
+    text-transform:uppercase; padding:2px 8px; border-radius:99px; margin-bottom:6px;
+  }
+  .slot.b1{background:#e6f1ea; color:#2f6b4f;}
+  .slot.b2{background:#f8eeda; color:#9a7127;}
+  .slot.b3{background:#e6eef8; color:#3b6ea5;}
+  .slot.b4{background:#efe8f8; color:#6f51a0;}
+  .card h3{font-size:15.5px; font-weight:700; letter-spacing:-.2px;}
+  .card-sub{display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; align-items:center;}
+  .pill{
+    font-size:12px; font-weight:700; padding:3px 9px; border-radius:8px;
+    background:var(--soft); color:var(--accent);
+  }
+  .pill.p{background:#e6eef8; color:var(--blue);}
+  .pill.time{background:#f2f5f3; color:var(--muted); font-weight:600;}
+  .pill.dim{opacity:.55;}
+
+  .card-body{padding:12px 16px 14px;}
+  table.ing{width:100%; border-collapse:collapse; font-size:13px;}
+  table.ing th{
+    text-align:left; font-size:11px; letter-spacing:.5px; text-transform:uppercase;
+    color:#85988e; font-weight:700; padding:0 6px 6px 0; border-bottom:1px solid var(--line);
+  }
+  table.ing th:not(:first-child), table.ing td:not(:first-child){text-align:right; white-space:nowrap;}
+  table.ing td{padding:6px 6px 6px 0; border-bottom:1px solid #f2f6f3;}
+  table.ing tr:last-child td{border-bottom:0;}
+  table.ing td.hl{color:var(--accent); font-weight:700;}
+  table.ing th.hl{color:var(--accent);}
+
+  .steps{margin-top:12px; border-top:1px dashed var(--line); padding-top:11px; display:none;}
+  .card.open .steps{display:block;}
+  .steps ol{margin:0 0 0 18px; padding:0; font-size:13.5px;}
+  .steps li{margin-bottom:6px;}
+  .tip{
+    margin-top:10px; font-size:12.5px; color:#6b5a34;
+    background:#fbf6ea; border-left:3px solid var(--gold); padding:8px 11px; border-radius:0 8px 8px 0;
+  }
+  .toggle{
+    margin-top:11px; border:0; background:transparent; color:var(--accent);
+    font-size:13px; font-weight:700; cursor:pointer; padding:0; display:inline-flex; gap:5px; align-items:center;
+  }
+  .toggle:hover{text-decoration:underline;}
+
+  /* ---------- SHOPPING ---------- */
+  .shop-head{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:16px;}
+  .progress-wrap{flex:1; min-width:220px;}
+  .progress-label{display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); font-weight:600; margin-bottom:6px;}
+  .search{
+    border:1px solid var(--line); background:#fff; border-radius:10px; padding:9px 13px;
+    font-size:13.5px; font-family:inherit; min-width:220px; outline:none;
+  }
+  .search:focus{border-color:var(--accent2); box-shadow:0 0 0 3px rgba(76,143,107,.14);}
+  .shop-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .shop-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px;}
+  .shop-card h3{font-size:13px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:9px;}
+  .item{display:flex; align-items:center; gap:9px; padding:5px 0; font-size:13.5px; cursor:pointer; border-bottom:1px solid #f4f8f5;}
+  .item:last-child{border-bottom:0;}
+  .item input{display:none;}
+  .box{
+    width:17px;height:17px;border:1.6px solid #b9cdc1;border-radius:5px;flex:none;
+    display:grid;place-items:center; transition:.15s; background:#fff;
+  }
+  .box::after{content:""; width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;
+    transform:rotate(-45deg) translate(0,-1px); opacity:0;}
+  .item input:checked + .box{background:var(--accent); border-color:var(--accent);}
+  .item input:checked + .box::after{opacity:1;}
+  .item input:checked ~ .txt{color:#9aada3; text-decoration:line-through;}
+  .txt{flex:1;}
+  .qty{font-weight:700; color:var(--accent); font-size:12.5px; white-space:nowrap;}
+  .item input:checked ~ .qty{color:#b9cdc1;}
+  .note-box{
+    background:#fbf6ea; border-left:3px solid var(--gold); padding:12px 15px; border-radius:0 10px 10px 0;
+    font-size:13.5px; color:#6b5a34; margin:14px 0;
+  }
+
+  /* ---------- TABLES ---------- */
+  .plain{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; margin:14px 0;}
+  table.data{width:100%; border-collapse:collapse; font-size:13.5px;}
+  table.data th{background:var(--accent); color:#fff; text-align:left; padding:9px 12px; font-size:12px; font-weight:600;}
+  table.data td{padding:8px 12px; border-bottom:1px solid #eef3f0;}
+  table.data tr:last-child td{border-bottom:0;}
+  table.data tr:nth-child(even) td{background:#f8fbf9;}
+
+  .section-title{font-size:13px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin:26px 0 10px; font-weight:700;}
+  .lead{color:var(--muted); font-size:14px; margin-bottom:16px;}
+
+  /* ---------- PIZZA ---------- */
+  .pizza-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+
+  footer.foot{color:#8ba096; font-size:11.5px; padding:26px 0 10px; border-top:1px solid var(--line); margin-top:24px;}
+
+  @media (max-width:860px){
+    .meals, .pizza-grid{grid-template-columns:1fr;}
+    .shop-grid{grid-template-columns:1fr 1fr;}
+    .summary{grid-template-columns:1fr;}
+    h1{font-size:18px;}
+    .top-row{flex-wrap:wrap;}
+  }
+  @media (max-width:520px){
+    .shop-grid{grid-template-columns:1fr;}
+  }
+
+  /* ---------- PRINT ---------- */
+  @media print{
+    @page{size:A4; margin:14mm 12mm;}
+    body{background:#fff; font-size:9.6pt;}
+    header.top, .toolbar, .shop-head .btn, .search, .toggle, nav.tabs, .no-print{display:none !important;}
+    .wrap{max-width:none; padding:0;}
+    main{padding:0;}
+    .tab{display:block !important;}
+    .tab + .tab{break-before:page;}
+    .day{display:block !important; break-before:page; margin-bottom:8mm;}
+    .day:first-child{break-before:auto;}
+    .steps{display:block !important;}
+    .card{break-inside:avoid; box-shadow:none;}
+    .meals{grid-template-columns:1fr 1fr; gap:6mm;}
+    .shop-grid{grid-template-columns:repeat(3,1fr);}
+    .summary{grid-template-columns:1fr 1fr;}
+    .bar{display:none;}
+    .pill{font-size:8.5pt; padding:1px 6px;}
+    .card h3{font-size:10.5pt;}
+    table.ing{font-size:8.8pt;}
+    .steps ol{font-size:8.8pt;}
+    .shop-card{break-inside:avoid;}
+    a{color:inherit; text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-row">
+    <div class="brand">
+      <div class="logo">🥗</div>
+      <div>
+        <div class="kicker">Plan żywieniowy · 5 dni</div>
+        <h1>Jadłospis 2000 / 1600 kcal</h1>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="seg" id="seg">
+        <button data-profile="both" class="on">Obie porcje</button>
+        <button data-profile="a">Ty · 2000</button>
+        <button data-profile="b">Osoba 2 · 1600</button>
+      </div>
+      <a class="btn" href="./jadlospis-5-dni.pdf" download>📄 PDF</a>
+      <button class="btn primary" id="printBtn">🖨️ Drukuj / PDF</button>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="plan" class="on">Jadłospis</button>
+    <button data-tab="zakupy">Lista zakupów</button>
+    <button data-tab="pizza">Pizza z airfryera</button>
+    <button data-tab="przygotowanie">Przygotowanie</button>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= PLAN ================= -->
+  <section class="tab on" id="tab-plan">
+    <div class="toolbar">
+      <button class="chip on" data-day="all">Wszystkie dni</button>
+      <button class="chip" data-day="1">Dzień 1</button>
+      <button class="chip" data-day="2">Dzień 2</button>
+      <button class="chip" data-day="3">Dzień 3</button>
+      <button class="chip" data-day="4">Dzień 4</button>
+      <button class="chip" data-day="5">Dzień 5</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="expandAll">Rozwiń wszystkie przepisy</button>
+    </div>
+
+    <div class="summary" id="summary"></div>
+    <div id="days"></div>
+
+    <div class="note-box">
+      <strong>Jak dopasować porcje:</strong> osoba 2 je ok. 80% Twojej porcji — białko zmniejszasz o 20–25%,
+      węglowodany (płatki, kasze, pieczywo) o 35–40%. Jeśli brakuje kalorii do celu, dołóż 40 g płatków owsianych
+      (+148 kcal) albo 150 g owocu z 10 g orzechów (+150 kcal). Osoba 2 powinna to zrobić w dniach 4 i 5.
+    </div>
+  </section>
+
+  <!-- ================= ZAKUPY ================= -->
+  <section class="tab" id="tab-zakupy">
+    <div class="shop-head no-print">
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="shopCount">0 z 0 kupione</span><span id="shopPct">0%</span></div>
+        <div class="bar"><i id="shopBar" style="width:0%"></i></div>
+      </div>
+      <input class="search" id="shopSearch" type="search" placeholder="Szukaj produktu…">
+      <button class="btn" id="resetShop">Odznacz wszystko</button>
+    </div>
+    <p class="lead no-print" style="margin-top:-4px">Ilości na 5 dni dla dwóch osób. Kurczak (2 kg) — masz, nie kupujesz. Odhaczenia zapisują się w przeglądarce.</p>
+    <div class="shop-grid" id="shopGrid"></div>
+  </section>
+
+  <!-- ================= PIZZA ================= -->
+  <section class="tab" id="tab-pizza">
+    <h2 style="font-size:22px; margin-bottom:6px">Pizza z serka wiejskiego w airfryerze</h2>
+    <p class="lead">Wersja śniadaniowa zastępuje śniadanie 1:1. Wersja kolacyjna zastępuje kolację — wtedy pomiń oliwę i wafel.</p>
+    <div class="pizza-grid" id="pizzaGrid"></div>
+    <div class="note-box">
+      <strong>Zasady:</strong> serek odciśnij na sitku 5 minut i koniecznie zmiksuj z jajkiem oraz zmielonymi płatkami —
+      inaczej spód się rozpada. Airfryer: 180°C przez 8–10 min sam spód, potem 190°C przez 5–7 min z dodatkami.
+      Główna dźwignia kalorii to ser: 1 g mozzarelli light ≈ 2,5 kcal — zmniejszaj ser, nie warzywa.
+    </div>
+  </section>
+
+  <!-- ================= PRZYGOTOWANIE ================= -->
+  <section class="tab" id="tab-przygotowanie">
+    <h2 style="font-size:22px; margin-bottom:6px">Przygotowanie i przeliczniki</h2>
+    <p class="lead">Dwie sesje gotowania w tygodniu plus 5 minut każdego wieczoru — tyle wystarczy, żeby trzymać plan.</p>
+    <div class="plain">
+      <table class="data" id="prepTable">
+        <thead><tr><th style="width:16%">Kiedy</th><th>Co robisz</th><th style="width:12%">Czas</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Kurczak — budżet 2 kg</div>
+    <div class="plain">
+      <table class="data" id="chickenTable">
+        <thead><tr><th>Przeznaczenie</th><th>Ty</th><th>Osoba 2</th><th>Razem</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Przeliczniki — zapamiętaj te liczby</div>
+    <div class="plain">
+      <table class="data" id="convTable">
+        <thead><tr><th>Produkt (100 g)</th><th>kcal</th><th>Białko</th><th>Produkt (100 g)</th><th>kcal</th><th>Białko</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <footer class="foot">
+      Wartości odżywcze są orientacyjne i zależą od konkretnych produktów — sprawdzaj etykiety.
+      Plan nie zastępuje konsultacji z dietetykiem, zwłaszcza przy chorobach przewlekłych, cukrzycy
+      lub zaburzeniach odżywiania.
+    </footer>
+  </section>
+
+</main>
+
+<script>
+/* =========================================================
+   DANE
+   ========================================================= */
+const SLOTS = {b:"Śniadanie", i:"II śniadanie", o:"Obiad", k:"Kolacja"};
+const SLOT_CLASS = {b:"b1", i:"b2", o:"b3", k:"b4"};
+const TARGETS = {a:{kcal:2000, prot:140}, b:{kcal:1600, prot:110}};
+
+const DAYS = [
+{
+  n:1, name:"Dzień 1",
+  meals:{
+    b:{t:"Skyr bowl klasyczny", time:"5 min", a:[545,38], b:[425,30],
+      ing:[["Skyr naturalny 0%","250 g","200 g"],["Płatki owsiane","60 g","50 g"],["Banan","120 g","—"],["Borówki","—","100 g"],["Orzechy włoskie","10 g","10 g"]],
+      steps:["Płatki wsyp do miski, dodaj skyr i wymieszaj. Odstaw 5 minut, żeby zmiękły.",
+             "Dodaj pokrojony banan (lub borówki) i posiekane orzechy.",
+             "Opcjonalnie szczypta cynamonu. Nie słodź — banan wystarczy."]},
+    i:{t:"Jajecznica na żytnim z serkiem wiejskim", time:"7 min", a:[350,27], b:[280,19],
+      ing:[["Jajka","2 szt.","1 szt."],["Chleb żytni pełnoziarnisty","1 kromka (35 g)","1 kromka (35 g)"],["Serek wiejski","100 g","100 g"],["Pomidor","100 g","100 g"],["Szczypiorek, pieprz","do smaku","do smaku"]],
+      steps:["Roztrzep jajka z pieprzem i szczypiorkiem.",
+             "Wylej na rozgrzaną patelnię teflonową bez tłuszczu i mieszaj 1,5–2 min — mają być wilgotne.",
+             "Na chleb nałóż serek wiejski, obok jajecznica i pomidor. Pakuj oddzielnie, żeby chleb nie zamókł."]},
+    o:{t:"Kurczak + kasza gryczana + warzywa pieczone", time:"30 min", a:[600,58], b:[460,45],
+      ing:[["Pierś z kurczaka (surowa)","200 g","150 g"],["Kasza gryczana (sucha)","70 g","55 g"],["Cukinia, papryka, cebula","250 g","200 g"],["Oliwa z oliwek","10 g","5 g"],["Papryka słodka, czosnek, cytryna","do smaku","do smaku"]],
+      steps:["Kurczaka pokrój w plastry, wymieszaj z papryką, czosnkiem, połową oliwy i sokiem z cytryny. Odstaw 15 min.",
+             "Kasza: 1 część kaszy na 2 części wody, gotuj 12–15 min pod przykryciem, odstaw 5 min.",
+             "Warzywa pokrój, wymieszaj z resztą oliwy i ziołami, piecz 20 min w 200°C (airfryer 190°C, 15 min).",
+             "Kurczaka piecz 12–14 min w 190°C lub smaż 4–5 min na stronę na patelni grillowej."]},
+    k:{t:"Twaróg ze szczypiorkiem i surówką", time:"8 min", a:[425,33], b:[330,25],
+      ing:[["Twaróg półtłusty","150 g","120 g"],["Ogórek, pomidor, rzodkiewka, sałata","200 g","150 g"],["Oliwa","10 g","5 g"],["Wafel żytni","1 szt.","1 szt."],["Szczypiorek, pieprz","do smaku","do smaku"]],
+      steps:["Twaróg rozgnieć widelcem ze szczypiorkiem, pieprzem i 2 łyżkami wody — będzie kremowy bez tłuszczu.",
+             "Warzywa pokrój, polej oliwą wymieszaną z cytryną.",
+             "Podawaj z waflem żytnim."]}
+  }
+},
+{
+  n:2, name:"Dzień 2",
+  meals:{
+    b:{t:"Overnight oats (na noc)", time:"5 min + noc", a:[490,35], b:[430,29],
+      ing:[["Skyr naturalny 0%","200 g","180 g"],["Płatki owsiane","40 g","35 g"],["Kefir 2%","100 ml","100 ml"],["Siemię lniane lub chia","10 g","8 g"],["Borówki","100 g","80 g"],["Orzechy włoskie","10 g","8 g"]],
+      steps:["W słoiku wymieszaj skyr, kefir, płatki i chia. Odstaw 10 min, potem zamieszaj ponownie.",
+             "Dodaj borówki (mogą być mrożone), zakręć i wstaw do lodówki na noc.",
+             "Rano dodaj orzechy. Możesz zabrać słoik do pracy — nie trzeba podgrzewać."],
+      tip:"Lubisz rzadsze? Dolej 30–50 ml kefiru rano."},
+    i:{t:"Wrap z kurczakiem i hummusem", time:"5 min", a:[405,32], b:[370,22],
+      ing:[["Wrap pełnoziarnisty","1 (60 g)","1 (50 g)"],["Kurczak z obiadu","100 g","50 g"],["Hummus","30 g","20 g"],["Sałata, papryka, ogórek","60 g","60 g"],["Chleb żytni (dodatek)","—","1 kromka"]],
+      steps:["Podgrzej wrap 30 s na suchej patelni — lepiej się zwija.",
+             "Posmaruj hummusem, ułóż paski kurczaka i warzywa.",
+             "Zwiń ciasno, przekrój na pół, owiń papierem. Osoba 2 dokłada kromkę żytniego."]},
+    o:{t:"Kurczak + quinoa + brokuł", time:"25 min", a:[605,58], b:[470,46],
+      ing:[["Pierś z kurczaka","190 g","150 g"],["Quinoa (sucha)","70 g","60 g"],["Brokuł lub fasolka szparagowa","250 g","200 g"],["Oliwa","10 g","5 g"],["Czosnek, cytryna, pieprz","do smaku","do smaku"]],
+      steps:["Quinoa przepłucz na sitku (usuwa gorycz), gotuj 1:2 przez 12–15 min.",
+             "Brokuł gotuj na parze 5–6 min — ma zostać jędrny.",
+             "Kurczaka przypraw, upiecz lub usmaż. Skrop całość cytryną i oliwą."]},
+    k:{t:"Twaróg z papryką i pestkami dyni", time:"6 min", a:[370,32], b:[300,26],
+      ing:[["Twaróg półtłusty","150 g","120 g"],["Papryka, rzodkiewka, ogórek","200 g","150 g"],["Pestki dyni","10 g","7 g"],["Wafel żytni","1 szt.","1 szt."],["Jogurt grecki, koperek","30 g","20 g"]],
+      steps:["Twaróg wymieszaj z jogurtem greckim i koperkiem — powstanie gęsty dip.",
+             "Paprykę i rzodkiewkę pokrój w słupki i maczaj w dipie.",
+             "Posyp pestkami dyni, zjedz z waferem."]}
+  }
+},
+{
+  n:3, name:"Dzień 3",
+  meals:{
+    b:{t:"Placuszki proteinowe z twarogu", time:"12 min", a:[515,34], b:[405,30],
+      ing:[["Twaróg półtłusty","120 g","80 g"],["Jajko","1 szt.","1 szt."],["Płatki owsiane (zmielone)","50 g","35 g"],["Borówki","100 g","80 g"],["Skyr (dodatek)","—","50 g"],["Oliwa do patelni","5 g","3 g"]],
+      steps:["Płatki zmiel blenderem na mąkę. Dodaj twaróg i jajko, zmiksuj na gładką masę. Odstaw 5 min.",
+             "Rozgrzej patelnię teflonową, posmaruj oliwą. Nakładaj łyżką 3–4 placki.",
+             "Smaż 2–3 min na stronę na średnim ogniu, aż będą rumiane.",
+             "Podawaj z borówkami; osoba 2 dokłada 50 g skyru obok."]},
+    i:{t:"Muffiny jajeczne (pieczone na zapas)", time:"20 min", a:[355,31], b:[305,25],
+      ing:[["Muffiny jajeczne","2 szt.","2 szt."],["Chleb żytni pełnoziarnisty","1 kromka","1 kromka"],["Pomidor","100 g","100 g"],["Serek wiejski","100 g","50 g"]],
+      steps:["Na 8 muffinów: 6 jajek, 150 g papryki, 100 g szpinaku, 50 g cebuli, 30 g mozzarelli light.",
+             "Piekarnik/airfryer 180°C. Warzywa pokrój drobno, wymieszaj z jajkami, rozlej do foremek.",
+             "Piecz 15–18 min, aż środek się zetnie. Studź na kratce.",
+             "Trzymaj w lodówce do 3 dni. Jedz na zimno lub 30 s w mikrofali."]},
+    o:{t:"Kurczak + pęczak + surówka z kapusty", time:"35 min", a:[620,57], b:[455,44],
+      ing:[["Pierś z kurczaka","200 g","150 g"],["Pęczak (suchy)","70 g","50 g"],["Kapusta biała","150 g","100 g"],["Marchewka","50 g","50 g"],["Jogurt grecki 2%","50 g","30 g"],["Oliwa","5 g","3 g"]],
+      steps:["Pęczak gotuj w osolonej wodzie 25–30 min (1:2,5).",
+             "Kapustę poszatkuj cienko, posól, odstaw 10 min i odciśnij.",
+             "Dodaj startą marchewkę, jogurt grecki, pieprz i odrobinę cytryny.",
+             "Kurczaka upiecz lub usmaż, podawaj z pęczakiem i surówką."]},
+    k:{t:"Jajka na twardo z dużą sałatką", time:"12 min", a:[415,33], b:[320,22],
+      ing:[["Jajka","2 szt.","1 szt."],["Twaróg (dodatek)","50 g","50 g"],["Pomidor, ogórek, papryka, sałata","250 g","200 g"],["Oliwa","10 g","5 g"],["Chleb żytni","1 kromka","1 kromka"]],
+      steps:["Jajka gotuj 8 min od wrzenia, przelej zimną wodą, obierz i przekrój na ćwiartki.",
+             "Warzywa pokrój, wymieszaj z oliwą, cytryną i ½ łyżeczki musztardy.",
+             "Ułóż jajka i twaróg na sałatce, podawaj z kromką żytniego."]}
+  }
+},
+{
+  n:4, name:"Dzień 4",
+  meals:{
+    b:{t:"Bowl z gruszką lub jabłkiem i cynamonem", time:"5 min", a:[520,35], b:[400,28],
+      ing:[["Skyr naturalny 0%","250 g","200 g"],["Płatki owsiane","50 g","40 g"],["Gruszka lub jabłko","150 g","120 g"],["Orzechy włoskie","15 g","10 g"],["Cynamon","szczypta","szczypta"]],
+      steps:["Płatki wymieszaj ze skyrem, odstaw 5 min.",
+             "Owoc zetrzyj na tarce (jabłko) lub pokrój w kostkę (gruszka) i dodaj do miski.",
+             "Posyp cynamonem i orzechami. Wersja o najniższym IG w całym planie."]},
+    i:{t:"Chleb żytni z hummusem i kurczakiem", time:"5 min", a:[385,32], b:[245,19],
+      ing:[["Chleb żytni pełnoziarnisty","2 kromki","1 kromka"],["Hummus","30 g","25 g"],["Kurczak z obiadu","100 g","60 g"],["Papryka, marchewka, ogórek","100 g","100 g"]],
+      steps:["Chleb podpiecz 2 min w tosterze lub airfryerze — dłużej zostanie chrupiący.",
+             "Posmaruj hummusem, ułóż plastry kurczaka i warzywa w słupkach.",
+             "Osoba 2 może dołożyć 150 g owocu — w tym dniu ma zapas kalorii."]},
+    o:{t:"Kurczak + makaron pełnoziarnisty w sosie pomidorowym", time:"25 min", a:[620,55], b:[470,43],
+      ing:[["Pierś z kurczaka","190 g","150 g"],["Makaron pełnoziarnisty (suchy)","70 g","50 g"],["Passata pomidorowa","200 g","150 g"],["Szpinak","100 g","80 g"],["Cebula, czosnek","50 g","40 g"],["Oliwa","10 g","5 g"]],
+      steps:["Makaron gotuj 1 min krócej niż na opakowaniu — dokończy się w sosie.",
+             "Cebulę i czosnek zeszklij na oliwie, wlej passatę, dodaj bazylię i oregano. Gotuj 10 min.",
+             "Kurczaka pokrój w paski, podsmaż osobno i przełóż do sosu.",
+             "Na koniec wrzuć szpinak i makaron, wymieszaj 1–2 min."]},
+    k:{t:"Sałatka z tuńczykiem i jogurtem greckim", time:"7 min", a:[430,41], b:[325,31],
+      ing:[["Tuńczyk w wodzie (odsączony)","1 puszka (~100 g)","¾ puszki (~75 g)"],["Jogurt grecki 2%","100 g","70 g"],["Ogórek, pomidor, cebula, sałata","200 g","150 g"],["Awokado","50 g","20 g"],["Pieczywo żytnie","1 kromka + 1 wafel","1 kromka"]],
+      steps:["Tuńczyka odsącz i rozdrobnij widelcem.",
+             "Wymieszaj z jogurtem greckim, posiekaną cebulą, ogórkiem i koperkiem. Dopraw pieprzem — nie solą.",
+             "Podawaj na liściach sałaty z awokado i pieczywem."]}
+  }
+},
+{
+  n:5, name:"Dzień 5",
+  meals:{
+    b:{t:"Smoothie bowl", time:"7 min", a:[515,36], b:[400,27],
+      ing:[["Skyr naturalny 0%","200 g","150 g"],["Kefir 2%","150 ml","120 ml"],["Borówki","100 g","80 g"],["Płatki owsiane","40 g","30 g"],["Siemię lniane lub chia","10 g","8 g"],["Orzechy włoskie","10 g","8 g"]],
+      steps:["Zmiksuj skyr, kefir, borówki, płatki i chia na gładką masę.",
+             "Odstaw 5 min, żeby chia i płatki napęczniały — masa zgęstnieje.",
+             "Przelej do miski, posyp orzechami. W wersji to go dolej 100 ml wody i wypij jako shake."]},
+    i:{t:"Serek wiejski ze szczypiorkiem i jajkiem", time:"6 min", a:[325,24], b:[280,21],
+      ing:[["Serek wiejski","150 g","100 g"],["Jajko na twardo","1 szt.","1 szt."],["Chleb żytni pełnoziarnisty","1 kromka","1 kromka"],["Pomidor, ogórek","100 g","100 g"],["Szczypiorek, rzodkiewka","garść","garść"]],
+      steps:["Jajko gotuj 8 min od wrzenia, ostudź i obierz.",
+             "Serek wiejski wymieszaj ze szczypiorkiem, pieprzem i rzodkiewką.",
+             "Pakuj: chleb osobno, serek w pojemniku, jajko i warzywa w drugim."]},
+    o:{t:"One-pan: kurczak curry z warzywami i kaszą", time:"30 min", a:[600,58], b:[455,44],
+      ing:[["Pierś z kurczaka","200 g","150 g"],["Kasza gryczana (sucha)","70 g","50 g"],["Cukinia, papryka, cebula, pieczarki","250 g","200 g"],["Oliwa","10 g","5 g"],["Curry, kurkuma, papryka ostra","do smaku","do smaku"]],
+      steps:["Kurczaka pokrój w kostkę i obtocz w curry oraz kurkumie.",
+             "Warzywa pokrój w grubą kostkę, wymieszaj z oliwą i przyprawami.",
+             "Wszystko na jedną blachę: 200°C przez 20–22 min (airfryer 190°C, 15–17 min).",
+             "Podawaj z ugotowaną kaszą. Jedno naczynie, minimum zmywania."]},
+    k:{t:"Skyr z borówkami i orzechami", time:"4 min", a:[425,38], b:[315,30],
+      ing:[["Skyr naturalny 0%","250 g","200 g"],["Płatki owsiane","30 g","20 g"],["Borówki","120 g","100 g"],["Orzechy włoskie","15 g","10 g"]],
+      steps:["Skyr wymieszaj z płatkami, odstaw 5 min.",
+             "Dodaj borówki i orzechy. Opcjonalnie łyżeczka kakao — bez cukru.",
+             "Dobra kolacja po treningu wieczornym: dużo białka, niski IG."]}
+  }
+}
+];
+
+const PIZZA = [
+ {t:"Pizza śniadaniowa", time:"15 min", a:[535,52], b:[420,41],
+  ing:[["Serek wiejski 3–4%","200 g","150 g"],["Jajko","1 szt.","1 szt."],["Płatki owsiane zmielone","25 g","20 g"],["Passata pomidorowa","60 g","40 g"],["Mozzarella light","30 g","20 g"],["Kurczak z obiadu / tuńczyk","50 g","40 g"],["Papryka, cebula, pieczarki, szpinak","100 g","80 g"]],
+  steps:["Serek odciśnij na sitku 5 min — inaczej spód będzie mokry.",
+         "Zmiksuj serek z jajkiem i zmielonymi płatkami na gładką masę (blender jest konieczny).",
+         "Rozłóż placek ~1 cm na papierze do pieczenia. Airfryer 180°C, 8–10 min, aż się zetnie.",
+         "Nałóż passatę, warzywa, mięso i mozzarellę. Piecz 190°C przez 5–7 min.",
+         "Posyp oregano po wyjęciu. Nie solij — serek i mozzarella już mają sól."]},
+ {t:"Pizza kolacyjna (mniejsza)", time:"15 min", a:[425,40], b:[350,33],
+  ing:[["Serek wiejski 3–4%","150 g","120 g"],["Jajko","1 szt.","1 szt."],["Płatki owsiane zmielone","20 g","15 g"],["Passata pomidorowa","40 g","30 g"],["Mozzarella light","20 g","15 g"],["Kurczak / tuńczyk","30 g","25 g"],["Warzywa","150 g","120 g"]],
+  steps:["Wykonanie identyczne jak wyżej.",
+         "Pomijasz oliwę i wafel z kolacji w danym dniu — pizza ma już tłuszcz z sera i jajka.",
+         "Chcesz mniej kalorii? Zmniejsz ser, nie warzywa (1 g mozzarelli light ≈ 2,5 kcal)."]}
+];
+
+const SHOP = [
+ {c:"Białko i nabiał", items:[
+   ["Skyr naturalny 0%","2 kg"],["Twaróg półtłusty","0,8 kg"],["Serek wiejski 3–4%","0,9 kg"],
+   ["Kefir 2%","0,5 l"],["Jogurt grecki 2%","400 g"],["Jajka","20 szt."],
+   ["Tuńczyk w wodzie","2 puszki"],["Kurczak — filet","masz 2 kg"]
+ ]},
+ {c:"Węglowodany", items:[
+   ["Płatki owsiane zwykłe","700 g"],["Chleb żytni pełnoziarnisty","1 bochenek"],["Wafle żytnie","1 opak."],
+   ["Wrapy pełnoziarniste","4 szt."],["Kasza gryczana","300 g"],["Pęczak","200 g"],
+   ["Quinoa","200 g"],["Makaron pełnoziarnisty","500 g"]
+ ]},
+ {c:"Tłuszcze i dodatki", items:[
+   ["Oliwa z oliwek","500 ml"],["Orzechy włoskie","150 g"],["Pestki dyni","50 g"],
+   ["Siemię lniane / chia","50 g"],["Masło orzechowe 100%","mały słoik"],["Hummus","200 g"],
+   ["Passata pomidorowa","500 g"],["Mozzarella light","150 g"]
+ ]},
+ {c:"Owoce", items:[
+   ["Borówki świeże + mrożone","1 kg"],["Banany","3 szt."],["Gruszki lub jabłka","3 szt."],["Cytryny","2 szt."]
+ ]},
+ {c:"Warzywa", items:[
+   ["Pomidory","1,2 kg"],["Ogórki","6 szt."],["Papryka","5 szt."],["Cukinia","2 szt."],
+   ["Brokuł","2 szt."],["Fasolka szparagowa","300 g"],["Kapusta biała","½ główki"],
+   ["Marchew","1 kg"],["Szpinak","300 g"],["Cebula","1 kg"],["Czosnek","1 główka"],
+   ["Pieczarki","400 g"],["Rzodkiewka","2 pęczki"],["Sałata","1–2 główki"]
+ ]},
+ {c:"Zioła i przyprawy", items:[
+   ["Oregano, bazylia","—"],["Curry, kurkuma","—"],["Papryka słodka i ostra","—"],
+   ["Cynamon, kakao","—"],["Pieprz, sól","—"],["Szczypiorek, koperek","po 1 pęczku"]
+ ]}
+];
+
+const PREP = [
+ ["Niedziela","Upiecz 1,2 kg kurczaka w dwóch marynatach (zioła i curry). Ugotuj kaszę gryczaną i pęczak. Upiecz blachę warzyw. Zrób 8 muffinów jajecznych. Umyj i pokrój warzywa do pojemników.","~90 min"],
+ ["Wtorek wieczór","Zrób 2 słoiki overnight oats. Ugotuj 4 jajka na twardo. Przygotuj wrapa na środę.","~20 min"],
+ ["Środa","Upiecz drugą partię kurczaka (0,8 kg) na czwartek i piątek. Ugotuj makaron i quinoa.","~40 min"],
+ ["Każdy wieczór","Zapakuj drugie śniadanie do pracy — chleb osobno, wilgotne składniki osobno.","5 min"]
+];
+
+const CHICKEN = [
+ ["Obiady (5 dni)","190–200 g/dzień","150 g/dzień","~1750 g"],
+ ["Wrap (dzień 2) + kanapka (dzień 4)","200 g","100 g","~300 g"],
+ ["<strong>Suma</strong>","—","—","<strong>~2000 g</strong>"]
+];
+
+const CONV = [
+ ["Skyr 0%","60","11 g","Pierś z kurczaka (surowa)","105","23 g"],
+ ["Twaróg półtłusty","130","18 g","Serek wiejski","98","11 g"],
+ ["Jajko (1 szt.)","70","6,3 g","Tuńczyk w occie (odsączony)","116","26 g"],
+ ["Płatki owsiane","370","13 g","Kasza gryczana (sucha)","340","12,5 g"],
+ ["Quinoa (sucha)","368","14 g","Pęczak (suchy)","330","10 g"],
+ ["Chleb żytni (kromka 35 g)","90","2,5 g","Oliwa (10 g)","90","0 g"],
+ ["Orzechy włoskie","650","15 g","Banan","90","1,1 g"],
+ ["Borówki","57","0,7 g","Gruszka / jabłko","55","0,4 g"]
+];
+
+/* =========================================================
+   STAN
+   ========================================================= */
+const state = {tab:"plan", profile:"both", day:"all", expanded:false};
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* =========================================================
+   RENDER PLANU
+   ========================================================= */
+function fmt(n){ return String(n).replace(".", ","); }
+
+function mealCard(m, slotKey, idx, open){
+  const activeA = state.profile !== "b";
+  const activeB = state.profile !== "a";
+  const kcalA = state.profile === "a" ? `<span class="pill">${m.a[0]} kcal</span><span class="pill p">${m.a[1]} g B</span>`
+             : `<span class="pill dim">${m.a[0]} kcal · ${m.a[1]} g B</span>`;
+  const kcalB = state.profile === "b" ? `<span class="pill">${m.b[0]} kcal</span><span class="pill p">${m.b[1]} g B</span>`
+             : `<span class="pill dim">${m.b[0]} kcal · ${m.b[1]} g B</span>`;
+  const showBoth = state.profile === "both";
+  const head = showBoth
+    ? `<span class="pill">Ty ${m.a[0]} kcal · ${m.a[1]} g B</span><span class="pill p">Osoba 2 ${m.b[0]} kcal · ${m.b[1]} g B</span>`
+    : (state.profile === "a"
+        ? `<span class="pill">${m.a[0]} kcal</span><span class="pill p">${m.a[1]} g białka</span>`
+        : `<span class="pill">${m.b[0]} kcal</span><span class="pill p">${m.b[1]} g białka</span>`);
+
+  const rows = m.ing.map(r => `<tr>
+      <td>${r[0]}</td>
+      <td class="${activeA?'hl':''}">${r[1]}</td>
+      <td class="${activeB?'hl':''}">${r[2]}</td>
+    </tr>`).join("");
+
+  return `<article class="card ${open?'open':''}" data-card>
+    <div class="card-head">
+      <span class="slot ${SLOT_CLASS[slotKey]}">${SLOTS[slotKey]}</span>
+      <h3>${m.t}</h3>
+      <div class="card-sub">${head}<span class="pill time">⏱ ${m.time}</span></div>
+    </div>
+    <div class="card-body">
+      <table class="ing">
+        <thead><tr><th>Składnik</th><th class="${activeA?'hl':''}">Ty</th><th class="${activeB?'hl':''}">Osoba 2</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="steps">
+        <ol>${m.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+        ${m.tip ? `<div class="tip">💡 ${m.tip}</div>` : ""}
+      </div>
+      <button class="toggle" data-toggle>▸ Pokaż przepis</button>
+    </div>
+  </article>`;
+}
+
+function dayTotals(d){
+  const t = {a:[0,0], b:[0,0]};
+  Object.values(d.meals).forEach(m=>{
+    t.a[0]+=m.a[0]; t.a[1]+=m.a[1];
+    t.b[0]+=m.b[0]; t.b[1]+=m.b[1];
+  });
+  return t;
+}
+
+function renderSummary(){
+  const src = state.day === "all" ? DAYS : DAYS.filter(d=>String(d.n)===state.day);
+  const tot = {a:[0,0], b:[0,0]};
+  src.forEach(d=>{ const t = dayTotals(d); tot.a[0]+=t.a[0]; tot.a[1]+=t.a[1]; tot.b[0]+=t.b[0]; tot.b[1]+=t.b[1]; });
+  const days = src.length;
+
+  const block = (key, label) => {
+    const tg = TARGETS[key];
+    const kcal = tot[key][0], prot = tot[key][1];
+    const kcalTarget = tg.kcal * days, protTarget = tg.prot * days;
+    const kp = Math.min(100, Math.round(kcal/kcalTarget*100));
+    const pp = Math.min(100, Math.round(prot/protTarget*100));
+    return `<div class="sum-card">
+      <h4>${label} · ${days===1?"cel dnia":"średnio na dzień"}</h4>
+      <div class="big">${Math.round(kcal/days)} <span>kcal / cel ${tg.kcal}</span></div>
+      <div class="bar"><i style="width:${kp}%"></i></div>
+      <div class="bar-row"><span>kalorie</span><span>${kcal>kcalTarget?"+":""}${Math.round((kcal-kcalTarget)/days)} kcal</span></div>
+      <div class="big" style="margin-top:10px">${Math.round(prot/days)} <span>g białka / cel ${tg.prot}</span></div>
+      <div class="bar protein"><i style="width:${pp}%"></i></div>
+      <div class="bar-row"><span>białko</span><span>${prot>=protTarget?"✓ norma":"brakuje "+Math.round((protTarget-prot)/days)+" g"}</span></div>
+    </div>`;
+  };
+
+  const showA = state.profile !== "b";
+  const showB = state.profile !== "a";
+  let html = "";
+  if(showA) html += block("a", "Ty · 2000 kcal");
+  if(showB) html += block("b", "Osoba 2 · 1600 kcal");
+  $("#summary").innerHTML = html;
+}
+
+function renderDays(){
+  const open = state.expanded;
+  $("#days").innerHTML = DAYS.map(d=>{
+    const t = dayTotals(d);
+    const totalTxt = state.profile === "both"
+      ? `Ty ${t.a[0]} kcal / ${t.a[1]} g B · Osoba 2 ${t.b[0]} kcal / ${t.b[1]} g B`
+      : (state.profile === "a" ? `${t.a[0]} kcal · ${t.a[1]} g białka` : `${t.b[0]} kcal · ${t.b[1]} g białka`);
+    const hidden = state.day !== "all" && String(d.n) !== state.day;
+    return `<section class="day" data-day="${d.n}" style="${hidden?'display:none':''}">
+      <div class="day-head">
+        <div class="day-num">${d.n}</div>
+        <h2>${d.name}</h2>
+        <div class="day-total">${totalTxt}</div>
+      </div>
+      <div class="meals">
+        ${["b","i","o","k"].map(k=>mealCard(d.meals[k], k, d.n, open)).join("")}
+      </div>
+    </section>`;
+  }).join("");
+}
+
+function renderPlan(){ renderSummary(); renderDays(); }
+
+/* =========================================================
+   ZAKUPY
+   ========================================================= */
+const SHOP_KEY = "jadlospis-zakupy-v1";
+let shopState = {};
+try{ shopState = JSON.parse(localStorage.getItem(SHOP_KEY) || "{}") || {}; }catch(e){ shopState = {}; }
+
+function saveShop(){
+  try{ localStorage.setItem(SHOP_KEY, JSON.stringify(shopState)); }catch(e){}
+}
+
+function renderShop(){
+  const grid = $("#shopGrid");
+  grid.innerHTML = SHOP.map((cat,ci)=>`
+    <div class="shop-card" data-cat="${ci}">
+      <h3>${cat.c}</h3>
+      ${cat.items.map((it,ii)=>{
+        const id = ci+"-"+ii;
+        const on = shopState[id] ? "checked" : "";
+        return `<label class="item" data-name="${it[0].toLowerCase()}">
+          <input type="checkbox" data-id="${id}" ${on}>
+          <span class="box"></span>
+          <span class="txt">${it[0]}</span>
+          <span class="qty">${it[1]}</span>
+        </label>`;
+      }).join("")}
+    </div>`).join("");
+  updateProgress();
+}
+
+function allItems(){ return $$('#shopGrid input[type="checkbox"]'); }
+
+function updateProgress(){
+  const items = allItems();
+  const done = items.filter(i=>i.checked).length;
+  const pct = items.length ? Math.round(done/items.length*100) : 0;
+  $("#shopCount").textContent = `${done} z ${items.length} kupione`;
+  $("#shopPct").textContent = pct + "%";
+  $("#shopBar").style.width = pct + "%";
+}
+
+/* =========================================================
+   POZOSTAŁE SEKCJE
+   ========================================================= */
+function renderPizza(){
+  $("#pizzaGrid").innerHTML = PIZZA.map((p,i)=>mealCard(p, "b", i, state.expanded)).join("");
+}
+
+function renderTables(){
+  $("#prepTable tbody").innerHTML = PREP.map(r=>`<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("");
+  $("#chickenTable tbody").innerHTML = CHICKEN.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("");
+  $("#convTable tbody").innerHTML = CONV.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("");
+}
+
+/* =========================================================
+   ZDARZENIA
+   ========================================================= */
+$("#seg").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-profile]");
+  if(!b) return;
+  state.profile = b.dataset.profile;
+  $$("#seg button").forEach(x=>x.classList.toggle("on", x===b));
+  renderPlan();
+});
+
+document.querySelector(".toolbar").addEventListener("click", e=>{
+  const chip = e.target.closest("button[data-day]");
+  if(chip){
+    state.day = chip.dataset.day;
+    $$(".toolbar .chip").forEach(x=>x.classList.toggle("on", x===chip));
+    renderPlan();
+    return;
+  }
+  if(e.target.closest("#expandAll")){
+    state.expanded = !state.expanded;
+    $("#expandAll").textContent = state.expanded ? "Zwiń wszystkie przepisy" : "Rozwiń wszystkie przepisy";
+    renderPlan(); renderPizza();
+  }
+});
+
+document.addEventListener("click", e=>{
+  const t = e.target.closest("[data-toggle]");
+  if(!t) return;
+  const card = t.closest(".card");
+  card.classList.toggle("open");
+  t.textContent = card.classList.contains("open") ? "▾ Ukryj przepis" : "▸ Pokaż przepis";
+});
+
+$("#tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-tab]");
+  if(!b) return;
+  state.tab = b.dataset.tab;
+  $$("#tabs button").forEach(x=>x.classList.toggle("on", x===b));
+  $$(".tab").forEach(x=>x.classList.toggle("on", x.id === "tab-"+state.tab));
+  window.scrollTo({top:0, behavior:"instant"});
+  if(state.tab === "zakupy") updateProgress();
+});
+
+$("#shopGrid").addEventListener("change", e=>{
+  const cb = e.target.closest('input[type="checkbox"]');
+  if(!cb) return;
+  shopState[cb.dataset.id] = cb.checked;
+  saveShop(); updateProgress();
+});
+
+$("#resetShop").addEventListener("click", ()=>{
+  shopState = {}; saveShop();
+  allItems().forEach(i=>{ i.checked = false; });
+  updateProgress();
+});
+
+$("#shopSearch").addEventListener("input", e=>{
+  const q = e.target.value.trim().toLowerCase();
+  $$(".shop-card").forEach(card=>{
+    let visible = 0;
+    card.querySelectorAll(".item").forEach(it=>{
+      const match = !q || it.dataset.name.includes(q);
+      it.style.display = match ? "" : "none";
+      if(match) visible++;
+    });
+    card.style.display = visible ? "" : "none";
+  });
+});
+
+$("#printBtn").addEventListener("click", ()=> window.print());
+
+/* =========================================================
+   START
+   ========================================================= */
+renderPlan();
+renderShop();
+renderPizza();
+renderTables();
+
+// tryb druku (?druk=1) — wszystko rozwinięte, obie porcje
+if(new URLSearchParams(location.search).has("druk")){
+  state.expanded = true;
+  state.profile = "both";
+  renderPlan(); renderPizza();
+}
+</script>
+</body>
+</html>
