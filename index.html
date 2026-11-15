@@ -183,9 +183,34 @@
   .item input:checked + .box{background:var(--accent); border-color:var(--accent);}
   .item input:checked + .box::after{opacity:1;}
   .item input:checked ~ .txt{color:#9aada3; text-decoration:line-through;}
-  .txt{flex:1;}
-  .qty{font-weight:700; color:var(--accent); font-size:12.5px; white-space:nowrap;}
-  .item input:checked ~ .qty{color:#b9cdc1;}
+  .txt{flex:1; min-width:0;}
+  .txt .sub{display:block; font-size:11px; color:#8ba096; font-weight:500; margin-top:1px;}
+  .item input:checked ~ .txt .sub{color:#b9cdc1;}
+  .price{font-weight:700; color:var(--ink); font-size:12.5px; white-space:nowrap;}
+  .item input:checked ~ .price{color:#b9cdc1; font-weight:600;}
+  .cat-sum{float:right; font-weight:700; color:var(--accent); font-size:12px; letter-spacing:0; text-transform:none;}
+  .money{font-size:13.5px; font-weight:600; color:var(--accent); margin-top:7px;}
+
+  /* pasek synchronizacji */
+  .sync-bar{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:#fff; border:1px solid var(--line); border-radius:12px;
+    padding:10px 14px; margin-bottom:14px; font-size:13px; color:var(--muted);
+  }
+  .dot{width:9px;height:9px;border-radius:99px;background:#c3d6ca;flex:none;transition:.2s;}
+  .dot.wait{background:#d9a441;}
+  .dot.live{background:#3f8a63; box-shadow:0 0 0 3px rgba(63,138,99,.18);}
+  .code{
+    font-family:ui-monospace,Consolas,monospace; background:#f2f6f3; border:1px solid var(--line);
+    padding:2px 8px; border-radius:6px; font-size:12.5px; letter-spacing:.5px; color:var(--ink);
+  }
+  #toast{
+    position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px);
+    background:#1d2a24; color:#fff; font-size:13.5px; font-weight:600;
+    padding:11px 18px; border-radius:11px; opacity:0; pointer-events:none;
+    transition:.22s; z-index:99; box-shadow:0 8px 24px rgba(0,0,0,.22); max-width:90vw; text-align:center;
+  }
+  #toast.show{opacity:1; transform:translate(-50%,0);}
   .note-box{
     background:#fbf6ea; border-left:3px solid var(--gold); padding:12px 15px; border-radius:0 10px 10px 0;
     font-size:13.5px; color:#6b5a34; margin:14px 0;
@@ -300,15 +325,23 @@
 
   <!-- ================= ZAKUPY ================= -->
   <section class="tab" id="tab-zakupy">
+    <div class="sync-bar no-print" id="syncBar">
+      <span class="dot" id="syncDot"></span>
+      <span id="syncText">Tylko to urządzenie — odhaczenia zapisują się lokalnie</span>
+      <span class="code" id="syncCode" style="display:none"></span>
+      <div class="spacer"></div>
+      <button class="btn" id="shareBtn">🔗 Udostępnij listę</button>
+    </div>
     <div class="shop-head no-print">
       <div class="progress-wrap">
         <div class="progress-label"><span id="shopCount">0 z 0 kupione</span><span id="shopPct">0%</span></div>
         <div class="bar"><i id="shopBar" style="width:0%"></i></div>
+        <div class="money" id="shopMoney"></div>
       </div>
       <input class="search" id="shopSearch" type="search" placeholder="Szukaj produktu…">
       <button class="btn" id="resetShop">Odznacz wszystko</button>
     </div>
-    <p class="lead no-print" style="margin-top:-4px">Ilości na 5 dni dla dwóch osób. Kurczak (2 kg) — masz, nie kupujesz. Odhaczenia zapisują się w przeglądarce.</p>
+    <p class="lead no-print" style="margin-top:-4px">Ilości na 5 dni dla dwóch osób. Ceny orientacyjne (Biedronka/Lidl/Kaufland). Kurczak (2 kg) — masz, nie kupujesz. Odhaczenia zapisują się lokalnie; po udostępnieniu listy obie osoby widzą zmiany na bieżąco.</p>
     <div class="shop-grid" id="shopGrid"></div>
   </section>
 
@@ -520,32 +553,32 @@ const PIZZA = [
 
 const SHOP = [
  {c:"Białko i nabiał", items:[
-   ["Skyr naturalny 0%","2 kg"],["Twaróg półtłusty","0,8 kg"],["Serek wiejski 3–4%","0,9 kg"],
-   ["Kefir 2%","0,5 l"],["Jogurt grecki 2%","400 g"],["Jajka","20 szt."],
-   ["Tuńczyk w wodzie","2 puszki"],["Kurczak — filet","masz 2 kg"]
+   ["Skyr naturalny 0%","2 kg",34],["Twaróg półtłusty","0,8 kg",14],["Serek wiejski 3–4%","0,9 kg",15],
+   ["Kefir 2%","0,5 l",4],["Jogurt grecki 2%","400 g",9],["Jajka","20 szt.",24],
+   ["Tuńczyk w wodzie","2 puszki",10],["Kurczak — filet","masz 2 kg",null]
  ]},
  {c:"Węglowodany", items:[
-   ["Płatki owsiane zwykłe","700 g"],["Chleb żytni pełnoziarnisty","1 bochenek"],["Wafle żytnie","1 opak."],
-   ["Wrapy pełnoziarniste","4 szt."],["Kasza gryczana","300 g"],["Pęczak","200 g"],
-   ["Quinoa","200 g"],["Makaron pełnoziarnisty","500 g"]
+   ["Płatki owsiane zwykłe","700 g",6],["Chleb żytni pełnoziarnisty","1 bochenek",10],["Wafle żytnie","1 opak.",5],
+   ["Wrapy pełnoziarniste","4 szt.",8],["Kasza gryczana","300 g",4.5],["Pęczak","200 g",2.5],
+   ["Quinoa","200 g",9],["Makaron pełnoziarnisty","500 g",6]
  ]},
  {c:"Tłuszcze i dodatki", items:[
-   ["Oliwa z oliwek","500 ml"],["Orzechy włoskie","150 g"],["Pestki dyni","50 g"],
-   ["Siemię lniane / chia","50 g"],["Masło orzechowe 100%","mały słoik"],["Hummus","200 g"],
-   ["Passata pomidorowa","500 g"],["Mozzarella light","150 g"]
+   ["Oliwa z oliwek","500 ml",30],["Orzechy włoskie","150 g",11],["Pestki dyni","50 g",3],
+   ["Siemię lniane / chia","50 g",5],["Masło orzechowe 100%","mały słoik",12],["Hummus","200 g",8],
+   ["Passata pomidorowa","500 g",4.5],["Mozzarella light","150 g",7]
  ]},
  {c:"Owoce", items:[
-   ["Borówki świeże + mrożone","1 kg"],["Banany","3 szt."],["Gruszki lub jabłka","3 szt."],["Cytryny","2 szt."]
+   ["Borówki świeże + mrożone","1 kg",22],["Banany","3 szt.",3],["Gruszki lub jabłka","3 szt.",4],["Cytryny","2 szt.",3]
  ]},
  {c:"Warzywa", items:[
-   ["Pomidory","1,2 kg"],["Ogórki","6 szt."],["Papryka","5 szt."],["Cukinia","2 szt."],
-   ["Brokuł","2 szt."],["Fasolka szparagowa","300 g"],["Kapusta biała","½ główki"],
-   ["Marchew","1 kg"],["Szpinak","300 g"],["Cebula","1 kg"],["Czosnek","1 główka"],
-   ["Pieczarki","400 g"],["Rzodkiewka","2 pęczki"],["Sałata","1–2 główki"]
+   ["Pomidory","1,2 kg",15],["Ogórki","6 szt.",6],["Papryka","5 szt.",12],["Cukinia","2 szt.",6],
+   ["Brokuł","2 szt.",8],["Fasolka szparagowa","300 g",5],["Kapusta biała","½ główki",3],
+   ["Marchew","1 kg",4],["Szpinak","300 g",7],["Cebula","1 kg",3],["Czosnek","1 główka",2],
+   ["Pieczarki","400 g",5],["Rzodkiewka","2 pęczki",5],["Sałata","1–2 główki",6]
  ]},
  {c:"Zioła i przyprawy", items:[
-   ["Oregano, bazylia","—"],["Curry, kurkuma","—"],["Papryka słodka i ostra","—"],
-   ["Cynamon, kakao","—"],["Pieprz, sól","—"],["Szczypiorek, koperek","po 1 pęczku"]
+   ["Oregano, bazylia","—",3],["Curry, kurkuma","—",3],["Papryka słodka i ostra","—",3],
+   ["Cynamon, kakao","—",4],["Pieprz, sól","—",3],["Szczypiorek, koperek","po 1 pęczku",4]
  ]}
 ];
 
@@ -689,44 +722,204 @@ function renderDays(){
 function renderPlan(){ renderSummary(); renderDays(); }
 
 /* =========================================================
-   ZAKUPY
+   ZAKUPY — dane, ceny, render
    ========================================================= */
-const SHOP_KEY = "jadlospis-zakupy-v1";
-let shopState = {};
-try{ shopState = JSON.parse(localStorage.getItem(SHOP_KEY) || "{}") || {}; }catch(e){ shopState = {}; }
+const SHOP_KEY = "jadlospis-zakupy-v2";
+const MY_ID = Math.random().toString(36).slice(2,10);
 
-function saveShop(){
-  try{ localStorage.setItem(SHOP_KEY, JSON.stringify(shopState)); }catch(e){}
-}
+let store = { items: {} };
+try{
+  const raw = JSON.parse(localStorage.getItem(SHOP_KEY) || "null");
+  if(raw && raw.items) store = raw;
+  else {
+    const old = JSON.parse(localStorage.getItem("jadlospis-zakupy-v1") || "null");
+    if(old) for(const k in old) store.items[k] = {v: !!old[k], t: 1};
+  }
+}catch(e){}
+
+const SYNC = { code:null, es:null, poll:null, lastT:0, mode:"local" };
+
+const money = n => (Math.round(n*100)/100).toFixed(2).replace(".", ",") + " zł";
+const priceOf = it => (typeof it[2] === "number" ? it[2] : 0);
+const isChecked = id => !!(store.items[id] && store.items[id].v);
+
+function saveShop(){ try{ localStorage.setItem(SHOP_KEY, JSON.stringify(store)); }catch(e){} }
 
 function renderShop(){
-  const grid = $("#shopGrid");
-  grid.innerHTML = SHOP.map((cat,ci)=>`
-    <div class="shop-card" data-cat="${ci}">
-      <h3>${cat.c}</h3>
+  $("#shopGrid").innerHTML = SHOP.map((cat,ci)=>{
+    const sum = cat.items.reduce((x,it)=>x+priceOf(it),0);
+    return `<div class="shop-card" data-cat="${ci}">
+      <h3>${cat.c}<span class="cat-sum">${money(sum)}</span></h3>
       ${cat.items.map((it,ii)=>{
         const id = ci+"-"+ii;
-        const on = shopState[id] ? "checked" : "";
-        return `<label class="item" data-name="${it[0].toLowerCase()}">
-          <input type="checkbox" data-id="${id}" ${on}>
+        const price = typeof it[2] === "number" ? money(it[2]) : "—";
+        return `<label class="item" data-name="${(it[0]+" "+it[1]).toLowerCase()}">
+          <input type="checkbox" data-id="${id}" ${isChecked(id)?"checked":""}>
           <span class="box"></span>
-          <span class="txt">${it[0]}</span>
-          <span class="qty">${it[1]}</span>
+          <span class="txt">${it[0]}<span class="sub">${it[1]}</span></span>
+          <span class="price">${price}</span>
         </label>`;
       }).join("")}
-    </div>`).join("");
+    </div>`;
+  }).join("");
   updateProgress();
 }
 
 function allItems(){ return $$('#shopGrid input[type="checkbox"]'); }
 
 function updateProgress(){
-  const items = allItems();
-  const done = items.filter(i=>i.checked).length;
-  const pct = items.length ? Math.round(done/items.length*100) : 0;
-  $("#shopCount").textContent = `${done} z ${items.length} kupione`;
+  const boxes = allItems();
+  let done = 0, spent = 0, total = 0;
+  SHOP.forEach((c,ci)=>c.items.forEach((it,ii)=>{
+    total += priceOf(it);
+    if(isChecked(ci+"-"+ii)){ done++; spent += priceOf(it); }
+  }));
+  const pct = boxes.length ? Math.round(done/boxes.length*100) : 0;
+  $("#shopCount").textContent = `${done} z ${boxes.length} kupione`;
   $("#shopPct").textContent = pct + "%";
   $("#shopBar").style.width = pct + "%";
+  const m = $("#shopMoney");
+  if(m) m.innerHTML = `🛒 W koszyku: <strong>${money(spent)}</strong> z ${money(total)} &nbsp;·&nbsp; zostało <strong>${money(total-spent)}</strong>`;
+}
+
+/* ---------- synchronizacja między urządzeniami ---------- */
+const syncTopic = code => "https://ntfy.sh/jadlospis-" + code;
+
+function setStatus(mode){
+  SYNC.mode = mode;
+  const dot = $("#syncDot"), txt = $("#syncText"), codeEl = $("#syncCode"), btn = $("#shareBtn");
+  if(mode === "local"){
+    dot.className = "dot";
+    txt.textContent = "Tylko to urządzenie — odhaczenia zapisują się lokalnie";
+    btn.textContent = "🔗 Udostępnij listę";
+  } else if(mode === "wait"){
+    dot.className = "dot wait";
+    txt.textContent = "Łączenie z drugą osobą…";
+    btn.textContent = "🔗 Kopiuj link";
+  } else {
+    dot.className = "dot live";
+    txt.textContent = "Synchronizacja włączona — zmiany widoczne u obu osób";
+    btn.textContent = "🔗 Kopiuj link";
+  }
+  if(SYNC.code){ codeEl.style.display = ""; codeEl.textContent = "kod: " + SYNC.code; }
+  else codeEl.style.display = "none";
+}
+
+let pubTimer = null;
+function schedulePublish(){
+  if(!SYNC.code) return;
+  clearTimeout(pubTimer);
+  pubTimer = setTimeout(publish, 350);
+}
+
+async function publish(){
+  if(!SYNC.code) return;
+  try{
+    await fetch(syncTopic(SYNC.code), {
+      method:"POST",
+      headers:{"Content-Type":"text/plain"},
+      body: JSON.stringify({by: MY_ID, items: store.items})
+    });
+  }catch(e){ /* offline — zostaje wersja lokalna */ }
+}
+
+function syncUi(){
+  allItems().forEach(cb => { cb.checked = isChecked(cb.dataset.id); });
+  updateProgress();
+}
+
+function applyRemote(payload){
+  if(!payload || payload.by === MY_ID || !payload.items) return;
+  let changed = false;
+  for(const id in payload.items){
+    const r = payload.items[id];
+    if(!r || typeof r.v !== "boolean") continue;
+    const l = store.items[id];
+    if(!l || (r.t || 0) > (l.t || 0)){ store.items[id] = {v: r.v, t: r.t || Date.now()}; changed = true; }
+  }
+  if(!changed) return;
+  saveShop(); syncUi();
+}
+
+function parseLine(line){
+  try{
+    const o = JSON.parse(line);
+    if(o.time) SYNC.lastT = Math.max(SYNC.lastT, o.time);
+    if(o.message){ try{ applyRemote(JSON.parse(o.message)); }catch(e){} }
+  }catch(e){}
+}
+
+function connectStream(base){
+  if(SYNC.es){ try{ SYNC.es.close(); }catch(e){} SYNC.es = null; }
+  if(SYNC.poll){ clearInterval(SYNC.poll); SYNC.poll = null; }
+  if(!("EventSource" in window)){ startPolling(); return; }
+  try{
+    const es = new EventSource(base + "/sse");
+    SYNC.es = es;
+    es.onopen = () => setStatus("live");
+    es.onmessage = ev => { setStatus("live"); parseLine(ev.data); };
+    es.onerror = () => {
+      try{ es.close(); }catch(e){}
+      SYNC.es = null; setStatus("wait"); startPolling();
+    };
+  }catch(e){ startPolling(); }
+}
+
+function startPolling(){
+  if(SYNC.poll) return;
+  SYNC.poll = setInterval(pollOnce, 4000);
+}
+
+async function pollOnce(){
+  if(!SYNC.code) return;
+  try{
+    const r = await fetch(syncTopic(SYNC.code) + "/json?poll=1&since=" + (SYNC.lastT || "10m"));
+    const text = await r.text();
+    text.trim().split("\n").filter(Boolean).forEach(parseLine);
+    setStatus("live");
+  }catch(e){ setStatus("wait"); }
+}
+
+async function startSync(code){
+  SYNC.code = code;
+  setStatus("wait");
+  const url = new URL(location.href);
+  url.searchParams.set("l", code);
+  history.replaceState(null, "", url.toString());
+
+  const base = syncTopic(code);
+
+  // 1) stan zapisany w kanale (ostatnie 12 h)
+  try{
+    const r = await fetch(base + "/json?poll=1&since=all");
+    const lines = (await r.text()).trim().split("\n").filter(Boolean);
+    lines.forEach(parseLine);
+  }catch(e){}
+
+  // 2) nasłuch na żywo
+  connectStream(base);
+
+  // 3) wyślij swój stan, żeby druga osoba go dostała
+  publish();
+}
+
+function teammateLink(){
+  return location.origin + location.pathname + "?l=" + SYNC.code;
+}
+
+function toast(msg){
+  let t = document.getElementById("toast");
+  if(!t){ t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.className = "show";
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.className = ""; }, 2800);
+}
+
+function initSync(){
+  const p = new URLSearchParams(location.search).get("l");
+  if(p && /^[a-z0-9]{4,32}$/i.test(p)) startSync(p.toLowerCase());
+  else setStatus("local");
 }
 
 /* =========================================================
@@ -789,14 +982,28 @@ $("#tabs").addEventListener("click", e=>{
 $("#shopGrid").addEventListener("change", e=>{
   const cb = e.target.closest('input[type="checkbox"]');
   if(!cb) return;
-  shopState[cb.dataset.id] = cb.checked;
-  saveShop(); updateProgress();
+  store.items[cb.dataset.id] = {v: cb.checked, t: Date.now()};
+  saveShop(); updateProgress(); schedulePublish();
 });
 
 $("#resetShop").addEventListener("click", ()=>{
-  shopState = {}; saveShop();
-  allItems().forEach(i=>{ i.checked = false; });
-  updateProgress();
+  const t = Date.now();
+  SHOP.forEach((c,ci)=>c.items.forEach((it,ii)=>{ store.items[ci+"-"+ii] = {v:false, t}; }));
+  saveShop(); syncUi(); schedulePublish();
+});
+
+$("#shareBtn").addEventListener("click", async ()=>{
+  if(!SYNC.code){
+    const code = Math.random().toString(36).slice(2,8);
+    await startSync(code);
+  }
+  const link = teammateLink();
+  try{
+    await navigator.clipboard.writeText(link);
+    toast("Link skopiowany — wyślij go drugiej osobie");
+  }catch(e){
+    window.prompt("Skopiuj link i wyślij drugiej osobie:", link);
+  }
 });
 
 $("#shopSearch").addEventListener("input", e=>{
@@ -819,6 +1026,7 @@ $("#printBtn").addEventListener("click", ()=> window.print());
    ========================================================= */
 renderPlan();
 renderShop();
+initSync();
 renderPizza();
 renderTables();
 
